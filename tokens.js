@@ -10,7 +10,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -25,7 +25,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -40,7 +40,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -55,7 +55,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -70,7 +70,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -85,7 +85,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -100,7 +100,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -115,7 +115,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -130,7 +130,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -145,7 +145,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -160,7 +160,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -175,7 +175,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -190,7 +190,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -205,7 +205,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -220,7 +220,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -235,7 +235,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -250,7 +250,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -265,7 +265,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -280,7 +280,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -295,7 +295,7 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     },
@@ -310,8 +310,9 @@ export default [{
             maxRetries: 9999,
         },
         presence: {
-            status: "idle",
+            status: "dnd",
         },
         selfMute: true,
     }
+
 ];
