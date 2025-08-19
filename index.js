@@ -45,7 +45,8 @@ const server = app.listen(port, '0.0.0.0', () => {
 // تهيئة جميع العملاء
 function initializeClients() {
     const cleanTokens = tokens.reduce((acc, token) => {
-        const isValid = token ? .token ? .length > 30;
+        // التصحيح هنا - إزالة المسافات بين ? و .
+        const isValid = token?.token?.length > 30;
         const isDuplicate = acc.some(t => t.token === token.token);
         if (isValid && !isDuplicate) {
             acc.push(token);
@@ -61,21 +62,21 @@ function initializeClients() {
     cleanTokens.forEach((token, index) => {
         setTimeout(() => {
             const client = new voiceClient(token);
-
+            
             client.on('ready', (user) => {
                 console.log(`[${index}] Logged in as ${user.username}#${user.discriminator}`);
                 client.connected = true;
             });
-
+            
             client.on('connected', () => {
                 console.log(`[${index}] Connected to Discord`);
                 client.connected = true;
             });
-
+            
             client.on('disconnected', () => {
                 console.log(`[${index}] Disconnected from Discord`);
                 client.connected = false;
-
+                
                 // إعادة الاتصال التلقائي
                 if (client.tokenConfig.autoReconnect.enabled) {
                     setTimeout(() => {
@@ -84,23 +85,23 @@ function initializeClients() {
                     }, client.tokenConfig.autoReconnect.delay * 1000);
                 }
             });
-
+            
             client.on('voiceReady', () => {
                 console.log(`[${index}] Voice is ready`);
             });
-
+            
             client.on('error', (error) => {
                 console.error(`[${index}] Error:`, error.message);
             });
-
+            
             client.on('debug', (message) => {
                 console.debug(`[${index}] ${message}`);
             });
-
+            
             // حفظ إعدادات التوكن في الكائن للرجوع إليها لاحقًا
             client.tokenConfig = token;
             client.connected = false;
-
+            
             clients.push(client);
             client.connect();
         }, index * 2000); // تأخير 2 ثانية بين كل عميل لتجنب الحظر
