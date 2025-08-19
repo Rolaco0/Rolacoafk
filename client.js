@@ -30,29 +30,29 @@ export class voiceClient extends EventEmitter {
             throw new Error('token, guildId, and channelId are required');
         }
         this.token = config.token;
-        this.guildId = config ? .serverId;
-        this.channelId = config ? .channelId;
-        this.selfMute = config.selfMute ? ? true;
-        this.selfDeaf = config.selfDeaf ? ? true;
+        this.guildId = config?.serverId; // التصحيح هنا
+        this.channelId = config?.channelId; // التصحيح هنا
+        this.selfMute = config.selfMute ?? true; // التصحيح هنا
+        this.selfDeaf = config.selfDeaf ?? true; // التصحيح هنا
         this.autoReconnect = {
-            enabled: config.autoReconnect ? .enabled ? ? true, // تمكين إعادة الاتصال افتراضيًا
-            delay: (config.autoReconnect ? .delay ? ? 5) * 1000,
-            maxRetries: config.autoReconnect ? .maxRetries ? ? 9999,
+            enabled: config.autoReconnect?.enabled ?? true,
+            delay: (config.autoReconnect?.delay ?? 5) * 1000,
+            maxRetries: config.autoReconnect?.maxRetries ?? 9999,
         };
-        if (config ? .presence ? .status) {
+        if (config?.presence?.status) {
             this.presence = config.presence;
         }
     }
 
     connect() {
         if (this.invalidSession) return;
-
+        
         try {
             this.ws = new WebSocket(GATEWAY_URL, {
                 skipUTF8Validation: true,
             });
 
-            this.setMaxListeners(20); // زيادة الحد للتعامل مع الأحداث
+            this.setMaxListeners(20);
 
             this.ws.on('open', () => {
                 this.emit('connected');
@@ -94,12 +94,12 @@ export class voiceClient extends EventEmitter {
                                 this.joinVoiceChannel();
                                 this.sendStatusUpdate();
                             } else if (eventType === 'VOICE_STATE_UPDATE') {
-                                if (d.user_id === this.user_id && d.channel_id === this.channelId && d ? .guild_id === this.guildId && this.firstLoad) {
+                                if (d.user_id === this.user_id && d.channel_id === this.channelId && d?.guild_id === this.guildId && this.firstLoad) {
                                     this.emit('voiceReady');
                                     console.log('Voice channel joined successfully');
                                     this.emit('debug', 'Successfully joined voice channel');
                                     this.firstLoad = false;
-                                } else if (d.user_id === this.user_id && (this.guildId && this.channelId && d ? .channel_id !== this.channelId || d ? .guild_id !== this.guildId)) {
+                                } else if (d.user_id === this.user_id && (this.guildId && this.channelId && d?.channel_id !== this.channelId || d?.guild_id !== this.guildId)) {
                                     if (this.autoReconnect.enabled) {
                                         console.log('Received VOICE_STATE_UPDATE event, attempting to reconnect');
                                         if (this.ignoreReconnect) {
@@ -132,7 +132,7 @@ export class voiceClient extends EventEmitter {
                 this.emit('disconnected');
                 this.emit('debug', `❌ Disconnected. Code: ${code}, Reason: ${reason}`);
                 this.cleanup();
-
+                
                 if (this.autoReconnect.enabled && this.reconnectAttempts < this.autoReconnect.maxRetries) {
                     setTimeout(() => this.connect(), 5000);
                 }
@@ -151,7 +151,6 @@ export class voiceClient extends EventEmitter {
         }
     }
 
-    // باقي الدوال تبقى كما هي مع تعديلات طفيفة
     startHeartbeat(interval) {
         if (this.heartbeatInterval) clearInterval(this.heartbeatInterval);
         this.heartbeatInterval = setInterval(() => {
@@ -218,7 +217,7 @@ export class voiceClient extends EventEmitter {
     }
 
     sendStatusUpdate() {
-        const status = this ? .presence ? .status ? .toLowerCase();
+        const status = this?.presence?.status?.toLowerCase();
         if (!status || !statusList.includes(status)) return;
         const payload = {
             "op": 3,
