@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: discord-voice-client
+    env: node
+    plan: free
+    branch: main
+    region: frankfurt
+    buildCommand: npm install
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+    autoDeploy: true
