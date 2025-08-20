@@ -4,7 +4,7 @@ import express from 'express';
 import fetch from 'node-fetch';
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 5000;
 let clients = [];
 
 app.use(express.json());
@@ -125,3 +125,4 @@ setInterval(() => {
         }
     });
 }, 60 * 60 * 1000); // كل ساعة
+
