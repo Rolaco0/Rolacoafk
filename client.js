@@ -23,6 +23,7 @@ export class voiceClient extends EventEmitter {
     presence;
     user_id = null;
     connected = false;
+    reconnecting = false;
 
     constructor(config) {
         super();
@@ -30,10 +31,10 @@ export class voiceClient extends EventEmitter {
             throw new Error('token, guildId, and channelId are required');
         }
         this.token = config.token;
-        this.guildId = config?.serverId; // التصحيح هنا
-        this.channelId = config?.channelId; // التصحيح هنا
-        this.selfMute = config.selfMute ?? true; // التصحيح هنا
-        this.selfDeaf = config.selfDeaf ?? true; // التصحيح هنا
+        this.guildId = config?.serverId;
+        this.channelId = config?.channelId;
+        this.selfMute = config.selfMute ?? true;
+        this.selfDeaf = config.selfDeaf ?? true;
         this.autoReconnect = {
             enabled: config.autoReconnect?.enabled ?? true,
             delay: (config.autoReconnect?.delay ?? 5) * 1000,
@@ -42,10 +43,12 @@ export class voiceClient extends EventEmitter {
         if (config?.presence?.status) {
             this.presence = config.presence;
         }
+        this.reconnecting = false;
     }
 
     connect() {
-        if (this.invalidSession) return;
+        if (this.invalidSession || this.reconnecting) return;
+        this.reconnecting = true;
         
         try {
             this.ws = new WebSocket(GATEWAY_URL, {
@@ -57,6 +60,11 @@ export class voiceClient extends EventEmitter {
             this.ws.on('open', () => {
                 this.emit('connected');
                 this.emit('debug', '🌐 Connected to Discord Gateway');
+                
+                // بعد الاتصال، أعد الانضمام إلى الروم بعد تأخير قصير
+                setTimeout(() => {
+                    this.joinVoiceChannel();
+                }, 1000);
             });
 
             this.ws.on('message', (data) => {
@@ -94,31 +102,16 @@ export class voiceClient extends EventEmitter {
                                 this.joinVoiceChannel();
                                 this.sendStatusUpdate();
                             } else if (eventType === 'VOICE_STATE_UPDATE') {
-                                if (d.user_id === this.user_id && d.channel_id === this.channelId && d?.guild_id === this.guildId && this.firstLoad) {
+                                if (d.user_id === this.user_id && d.channel_id === this.channelId && d?.guild_id === this.guildId) {
                                     this.emit('voiceReady');
-                                    console.log('Voice channel joined successfully');
+                                    console.log('تم الانضمام إلى قناة الصوت بنجاح');
                                     this.emit('debug', 'Successfully joined voice channel');
                                     this.firstLoad = false;
-                                } else if (d.user_id === this.user_id && (this.guildId && this.channelId && d?.channel_id !== this.channelId || d?.guild_id !== this.guildId)) {
-                                    if (this.autoReconnect.enabled) {
-                                        console.log('Received VOICE_STATE_UPDATE event, attempting to reconnect');
-                                        if (this.ignoreReconnect) {
-                                            console.log('Already reconnected, ignoring this event');
-                                            return;
-                                        };
-                                        this.reconnectAttempts++;
-                                        if (this.reconnectAttempts < this.autoReconnect.maxRetries) {
-                                            if (this.reconnectTimeout) clearTimeout(this.reconnectTimeout);
-                                            this.emit('debug', `Reconnecting... (${this.reconnectAttempts}/${this.autoReconnect.maxRetries})`);
-                                            this.ignoreReconnect = true;
-                                            this.reconnectTimeout = setTimeout(() => {
-                                                this.joinVoiceChannel();
-                                            }, this.autoReconnect.delay);
-                                        } else {
-                                            this.emit('debug', 'Max reconnect attempts reached. Stopping.');
-                                            this.cleanup();
-                                        }
-                                    }
+                                    this.ignoreReconnect = false;
+                                } else if (d.user_id === this.user_id && d.channel_id === null) {
+                                    // إذا خرج العميل من القناة
+                                    console.log('تم إخراج العميل من القناة الصوتية');
+                                    this.reconnectVoiceChannel();
                                 }
                             }
                             break;
@@ -145,6 +138,7 @@ export class voiceClient extends EventEmitter {
 
         } catch (error) {
             console.error('Connection error:', error);
+            this.reconnecting = false;
             if (this.autoReconnect.enabled) {
                 setTimeout(() => this.connect(), 5000);
             }
@@ -181,23 +175,51 @@ export class voiceClient extends EventEmitter {
     }
 
     joinVoiceChannel() {
-        if (!this.guildId || !this.channelId) return;
-        const voiceStateUpdate = {
-            op: 4,
-            d: {
-                guild_id: this.guildId,
-                channel_id: this.channelId,
-                self_mute: this.selfMute,
-                self_deaf: this.selfDeaf
-            }
-        };
+        if (!this.guildId || !this.channelId) {
+            console.log('❌ Cannot join voice: Missing guildId or channelId');
+            return;
+        }
+        
         if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            const voiceStateUpdate = {
+                op: 4,
+                d: {
+                    guild_id: this.guildId,
+                    channel_id: this.channelId,
+                    self_mute: this.selfMute,
+                    self_deaf: this.selfDeaf
+                }
+            };
+            
             this.ws.send(JSON.stringify(voiceStateUpdate));
             this.emit('debug', '🎤 Sent voice channel join request');
-            setTimeout(() => {
-                this.ignoreReconnect = false;
-            }, 1000);
+            console.log('✅ Sent join request to voice channel');
+        } else {
+            console.log('❌ Cannot join voice: WebSocket not ready');
         }
+    }
+
+    reconnectVoiceChannel() {
+        if (!this.guildId || !this.channelId) return;
+        
+        // الانتظار قليلاً قبل إعادة الانضمام
+        setTimeout(() => {
+            const voiceStateUpdate = {
+                op: 4,
+                d: {
+                    guild_id: this.guildId,
+                    channel_id: this.channelId,
+                    self_mute: this.selfMute,
+                    self_deaf: this.selfDeaf
+                }
+            };
+            
+            if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+                this.ws.send(JSON.stringify(voiceStateUpdate));
+                this.emit('debug', '🔄 إعادة الانضمام إلى قناة الصوت بعد إعادة الاتصال');
+                console.log('تم إرسال طلب إعادة الانضمام إلى القناة الصوتية');
+            }
+        }, 2000); // انتظر 2 ثانية قبل إعادة المحاولة
     }
 
     cleanup() {
@@ -214,6 +236,7 @@ export class voiceClient extends EventEmitter {
         }
         this.sequenceNumber = null;
         this.connected = false;
+        this.reconnecting = false;
     }
 
     sendStatusUpdate() {
