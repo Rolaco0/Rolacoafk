@@ -71,16 +71,22 @@ function initializeClients() {
             client.on('connected', () => {
                 console.log(`[${index}] Connected to Discord`);
                 client.connected = true;
+                client.reconnecting = false;
+                client.reconnectAttempts = 0;
             });
             
             client.on('disconnected', () => {
                 console.log(`[${index}] Disconnected from Discord`);
                 client.connected = false;
+                client.reconnecting = false;
                 
-                // إعادة الاتصال التلقائي
-                if (client.tokenConfig.autoReconnect.enabled) {
+                // إعادة الاتصال التلقائي - تأكد من عدم التكرار
+                if (client.tokenConfig.autoReconnect.enabled && !client.reconnecting) {
+                    client.reconnecting = true;
+                    console.log(`[${index}] Attempting to reconnect...`);
+                    
                     setTimeout(() => {
-                        console.log(`[${index}] Attempting to reconnect...`);
+                        client.reconnecting = false;
                         client.connect();
                     }, client.tokenConfig.autoReconnect.delay * 1000);
                 }
@@ -101,6 +107,7 @@ function initializeClients() {
             // حفظ إعدادات التوكن في الكائن للرجوع إليها لاحقًا
             client.tokenConfig = token;
             client.connected = false;
+            client.reconnecting = false;
             
             clients.push(client);
             client.connect();
@@ -125,4 +132,3 @@ setInterval(() => {
         }
     });
 }, 60 * 60 * 1000); // كل ساعة
-
